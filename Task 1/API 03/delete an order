@@ -1,0 +1,8 @@
+SELECT numQuantity FROM tblOrders WHERE intOrderId = @OrderId;
+
+DELETE FROM tblOrders WHERE intOrderId = @OrderId;
+
+UPDATE tblProducts
+SET numStock = numStock + @Quantity
+WHERE intProductId = @ProductId;
+

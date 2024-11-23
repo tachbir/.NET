@@ -1,0 +1,9 @@
+SELECT numStock FROM tblProducts WHERE intProductId = @ProductId;
+
+INSERT INTO tblOrders (intProductId, strCustomerName, numQuantity, dtOrderDate)
+VALUES (@ProductId, @CustomerName, @Quantity, GETDATE());
+
+UPDATE tblProducts
+SET numStock = numStock - @Quantity
+WHERE intProductId = @ProductId;
+

@@ -1,0 +1,62 @@
+// AuthController.cs
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
+
+[ApiController]
+[Route("api/auth")]
+public class AuthController : ControllerBase {
+    private readonly UserService _userService;
+    private const int MaxFailedAttempts = 3;
+    private const string JwtSecret = "Secret_Key_willbe_Here"; 
+
+    public AuthController(UserService userService) {
+        _userService = userService;
+    }
+
+    [HttpPost("register")]
+    public async Task<IActionResult> Register(UserModel model) {
+        var hashedPassword = BCrypt.Net.BCrypt.HashPassword(model.Password);
+        await _userService.CreateUser(model.Username, hashedPassword);
+        return Ok("User registered successfully.");
+    }
+
+    [HttpPost("login")]
+    public async Task<IActionResult> Login(LoginModel model) {
+        var user = await _userService.GetUser(model.Username);
+
+        if (user == null) return Unauthorized("Invalid username or password.");
+        if (user.Value.IsLocked) return Unauthorized("Account is locked.");
+
+        if (!BCrypt.Net.BCrypt.Verify(model.Password, user.Value.PasswordHash)) {
+            int failedAttempts = user.Value.FailedAttempts + 1;
+            bool isLocked = failedAttempts >= MaxFailedAttempts;
+            await _userService.UpdateFailedAttempts(model.Username, failedAttempts, isLocked);
+
+            if (isLocked) return Unauthorized("Account is locked due to multiple failed attempts.");
+            return Unauthorized("Invalid username or password.");
+        }
+
+        // Reset failed attempts on successful login
+        await _userService.UpdateFailedAttempts(model.Username, 0, false);
+
+        var token = GenerateJwtToken(model.Username);
+        return Ok(new { Token = token });
+    }
+
+    private string GenerateJwtToken(string username) {
+        var tokenHandler = new JwtSecurityTokenHandler();
+        var key = Encoding.ASCII.GetBytes(JwtSecret);
+        var tokenDescriptor = new SecurityTokenDescriptor {
+            Subject = new ClaimsIdentity(new[] { new Claim(ClaimTypes.Name, username) }),
+            Expires = DateTime.UtcNow.AddHours(1),
+            SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+        };
+
+        var token = tokenHandler.CreateToken(tokenDescriptor);
+        return tokenHandler.WriteToken(token);
+    }
+}
+

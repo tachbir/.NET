@@ -1,0 +1,6 @@
+SELECT p.strProductName, SUM(o.numQuantity) AS TotalQuantity,
+       SUM(o.numQuantity * p.numUnitPrice) AS TotalRevenue
+FROM tblOrders o
+JOIN tblProducts p ON o.intProductId = p.intProductId
+GROUP BY p.strProductName;
+

@@ -1,0 +1,4 @@
+SELECT strProductName, numUnitPrice, numStock
+FROM tblProducts
+WHERE numStock < @Threshold;
+

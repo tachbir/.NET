@@ -1,0 +1,6 @@
+SELECT strCustomerName, SUM(numQuantity) AS TotalQuantity
+FROM tblOrders
+GROUP BY strCustomerName
+ORDER BY TotalQuantity DESC
+LIMIT 3;
+

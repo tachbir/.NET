@@ -1,0 +1,13 @@
+SELECT numQuantity FROM tblOrders WHERE intOrderId = @OrderId;
+SELECT numStock FROM tblProducts WHERE intProductId = @ProductId;
+
+DECLARE @AvailableStock DECIMAL = numStock + numQuantity - @NewQuantity;
+
+IF @AvailableStock >= 0
+BEGIN
+    UPDATE tblOrders SET numQuantity = @NewQuantity WHERE intOrderId = @OrderId;
+    UPDATE tblProducts SET numStock = numStock + (numQuantity - @NewQuantity) WHERE intProductId = @ProductId;
+END
+ELSE
+    PRINT 'Insufficient stock';
+

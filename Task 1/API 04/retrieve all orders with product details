@@ -1,0 +1,4 @@
+SELECT o.*, p.strProductName, p.numUnitPrice
+FROM tblOrders o
+JOIN tblProducts p ON o.intProductId = p.intProductId;
+

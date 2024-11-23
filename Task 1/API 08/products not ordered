@@ -1,0 +1,4 @@
+SELECT strProductName
+FROM tblProducts
+WHERE intProductId NOT IN (SELECT intProductId FROM tblOrders);
+

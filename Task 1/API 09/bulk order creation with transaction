@@ -1,0 +1,23 @@
+BEGIN TRANSACTION;
+
+DECLARE @IsValid BIT = 1;
+
+FOREACH @Order IN @Orders
+BEGIN
+    SELECT numStock INTO @Stock FROM tblProducts WHERE intProductId = @Order.ProductId;
+
+    IF @Stock < @Order.Quantity
+    BEGIN
+        SET @IsValid = 0;
+        BREAK;
+    END
+
+    INSERT INTO tblOrders (...)
+    UPDATE tblProducts ...
+END
+
+IF @IsValid = 1
+    COMMIT;
+ELSE
+    ROLLBACK;
+
